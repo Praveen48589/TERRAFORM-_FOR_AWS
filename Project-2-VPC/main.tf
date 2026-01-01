@@ -90,7 +90,7 @@ resource "aws_eip" "nat_eip" {
   }
 }
 
-#STEP : 2 >> TO CREATE GATEWAY
+#STEP : 2 >> TO CREATE NAT GATEWAY
 
 resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat_eip.id

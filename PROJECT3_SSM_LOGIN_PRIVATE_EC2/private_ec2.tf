@@ -31,4 +31,14 @@ resource "aws_instance" "private_ec2" {
   tags = {
     Name = "private-ec2"
   }
+
+  # install nginx on private ec2 instance >>
+  user_data = <<-EOF
+              #!/bin/bash
+              dnf update -y
+              dnf install nginx -y
+              systemctl enable nginx
+              systemctl start nginx
+              EOF
+  
 }

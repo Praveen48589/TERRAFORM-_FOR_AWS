@@ -8,7 +8,7 @@ resource "aws_security_group" "private_sg" {
         from_port = 22
         to_port = 22
         protocol = "tcp"
-        security_groups = [aws_security_group.web_sg.id] # /128 means only one ip can access inbound rule ::
+        security_groups = [aws_security_group.web_sg.id] 
     }
 
     egress {
