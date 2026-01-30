@@ -7,8 +7,8 @@ terraform {
   }
   backend "s3" {
     bucket = "demo-s3-bucket-733c997f2960fe4d"
-    key = "backemd.tfstate"
-    region = "eu-north-1"
+    key = "backend.tfstate"
+    region = "ap-south-1"
     
   }
 }
