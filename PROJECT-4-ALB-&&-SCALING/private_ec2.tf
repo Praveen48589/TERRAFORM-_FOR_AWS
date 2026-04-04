@@ -3,7 +3,6 @@ resource "aws_security_group" "private_sg" {
   description = "private_sg"
   vpc_id      = aws_vpc.main.id
 
-  # ❌ No ingress rules (SSM does not need inbound access)
 
   ingress {
     from_port = 80
@@ -30,7 +29,6 @@ resource "aws_instance" "private_ec2" {
   subnet_id              = aws_subnet.private_subnet.id
   vpc_security_group_ids = [aws_security_group.private_sg.id]
 
-  # ✅ SSM access (instead of SSH)
   iam_instance_profile = aws_iam_instance_profile.ssm_profile.name
 
   associate_public_ip_address = false
