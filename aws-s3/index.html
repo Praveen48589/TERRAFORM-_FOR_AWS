@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeetCode 500 — Master Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050510;--card:#0c0c1e;--card2:#121228;
+  --border:rgba(255,255,255,0.06);--text:#e8e8ff;--muted:#5a5a7a;
+  --easy:#00ffa3;--med:#ffcc44;--hard:#ff4466;
+  --gold:#ffd700;--violet:#9d4edd;--cyan:#00d4ff;--pink:#ff2d78;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;cursor:default}
+
+/* ═══ ANIMATED AURORA BG ═══ */
+.aurora{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.aurora-blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:0;animation:blobFloat linear infinite}
+@keyframes blobFloat{
+  0%{transform:translate(0,0) scale(1);opacity:0}
+  15%{opacity:var(--op,.18)}
+  85%{opacity:var(--op,.18)}
+  100%{transform:translate(var(--tx,40px),var(--ty,-60px)) scale(1.15);opacity:0}
+}
+
+/* ═══ FLOATING ICONS ═══ */
+#floatLayer{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.fi{position:absolute;opacity:0;animation:floatUp var(--dur,14s) var(--del,0s) ease-in-out infinite;will-change:transform}
+@keyframes floatUp{
+  0%  {transform:translateY(105vh) rotate(0deg) scale(.6);opacity:0}
+  8%  {opacity:var(--op,.85)}
+  88% {opacity:var(--op,.6)}
+  100%{transform:translateY(-10vh) rotate(var(--rot,360deg)) scale(1.05);opacity:0}
+}
+
+/* ═══ CURSOR TRAIL ═══ */
+.cursor-dot{position:fixed;width:6px;height:6px;border-radius:50%;pointer-events:none;z-index:9998;mix-blend-mode:screen;transition:transform .05s;animation:dotFade .6s ease forwards}
+@keyframes dotFade{from{opacity:.9;transform:scale(1)}to{opacity:0;transform:scale(0)}}
+
+/* ═══ WRAP ═══ */
+.wrap{position:relative;z-index:1;max-width:1020px;margin:0 auto;padding:0 1.5rem 6rem}
+
+/* ═══ HERO ═══ */
+.hero{text-align:center;padding:4rem 0 2.5rem;animation:heroIn 1s cubic-bezier(.22,1,.36,1) both}
+@keyframes heroIn{from{opacity:0;transform:translateY(-50px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--cyan);border:1px solid rgba(0,212,255,.25);padding:6px 20px;
+  border-radius:99px;margin-bottom:1.5rem;background:rgba(0,212,255,.05);
+  animation:badgePulse 4s ease-in-out infinite alternate;
+}
+@keyframes badgePulse{from{box-shadow:0 0 0 rgba(0,212,255,0)}to{box-shadow:0 0 30px rgba(0,212,255,.3),0 0 60px rgba(0,212,255,.1)}}
+
+.hero h1{
+  font-family:'Orbitron',monospace;font-weight:900;
+  font-size:clamp(2.2rem,6.5vw,5.2rem);line-height:.9;letter-spacing:-.02em;
+  margin-bottom:1rem;
+  background:linear-gradient(120deg,#fff 0%,#c084fc 25%,#00d4ff 50%,#00ffa3 72%,#ffd700 100%);
+  background-size:300% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:titleShimmer 6s linear infinite;
+}
+@keyframes titleShimmer{from{background-position:0% center}to{background-position:300% center}}
+.hero-sub{color:var(--muted);font-size:14px;letter-spacing:.04em;font-weight:300}
+.hero-sub strong{color:var(--text);font-weight:600}
+
+/* ═══ SCOREBOARD ═══ */
+.scoreboard{
+  display:grid;grid-template-columns:auto 1fr auto;gap:1.5rem;align-items:center;
+  background:var(--card);border:1px solid var(--border);border-radius:24px;
+  padding:1.6rem 2rem;margin:2rem 0 1.2rem;position:relative;overflow:hidden;
+  animation:fadeUp .9s .1s cubic-bezier(.22,1,.36,1) both;
+}
+.scoreboard::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(157,78,221,.08) 0%,transparent 50%,rgba(0,212,255,.05) 100%);pointer-events:none}
+.scoreboard::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(157,78,221,.5),rgba(0,212,255,.5),transparent)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
+
+/* SVG ring */
+.ring-svg{transform:rotate(-90deg)}
+.r-bg{stroke:rgba(255,255,255,.05)}
+.r-fill{stroke:url(#mainGrad);stroke-linecap:round;stroke-dasharray:245;stroke-dashoffset:245;transition:stroke-dashoffset 1s cubic-bezier(.22,1,.36,1)}
+.ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-pct{font-family:'Orbitron',monospace;font-size:15px;font-weight:700;color:#fff;line-height:1}
+.ring-lbl{font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:.1em;margin-top:2px}
+
+.score-mid{display:flex;flex-direction:column;gap:8px}
+.score-title{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;letter-spacing:-.01em}
+.score-sub{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)}
+.mega-bar{height:8px;background:rgba(255,255,255,.05);border-radius:99px;overflow:hidden;margin-top:4px}
+.mega-fill{height:100%;border-radius:99px;width:0%;transition:width 1s cubic-bezier(.22,1,.36,1);background:linear-gradient(90deg,#9d4edd,#00d4ff,#00ffa3);background-size:200%;animation:fillShimmer 3s linear infinite}
+@keyframes fillShimmer{from{background-position:0%}to{background-position:200%}}
+
+.score-right{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.reset-btn{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.04em;padding:8px 16px;border-radius:10px;border:1px solid rgba(255,68,102,.28);background:rgba(255,68,102,.07);color:var(--hard);cursor:pointer;transition:all .2s;white-space:nowrap}
+.reset-btn:hover{background:rgba(255,68,102,.18);box-shadow:0 0 20px rgba(255,68,102,.25)}
+
+/* ═══ STAT PILLS ═══ */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.2rem;animation:fadeUp .8s .2s cubic-bezier(.22,1,.36,1) both}
+.sp{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:.9rem .8rem;text-align:center;position:relative;overflow:hidden;
+  transition:transform .2s,box-shadow .2s;cursor:default;
+}
+.sp:hover{transform:translateY(-5px)}
+.sp-shine{position:absolute;top:0;left:0;right:0;height:1px}
+.sp-total .sp-shine{background:linear-gradient(90deg,transparent,rgba(157,78,221,.8),transparent)}
+.sp-e .sp-shine{background:linear-gradient(90deg,transparent,var(--easy),transparent)}
+.sp-m .sp-shine{background:linear-gradient(90deg,transparent,var(--med),transparent)}
+.sp-h .sp-shine{background:linear-gradient(90deg,transparent,var(--hard),transparent)}
+.sp-num{font-family:'Orbitron',monospace;font-size:1.9rem;font-weight:900;display:block;line-height:1.1}
+.sp-total .sp-num{background:linear-gradient(135deg,#c084fc,#00d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sp-e .sp-num{color:var(--easy)}
+.sp-m .sp-num{color:var(--med)}
+.sp-h .sp-num{color:var(--hard)}
+.sp-lbl{font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-top:2px}
+
+/* ═══ NAV TABS ═══ */
+.nav-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.5rem;animation:fadeUp .8s .28s cubic-bezier(.22,1,.36,1) both;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:8px}
+.ntab{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;padding:7px 14px;border-radius:10px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:all .18s;white-space:nowrap}
+.ntab:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.ntab.active{background:linear-gradient(135deg,var(--violet),var(--cyan));color:#fff;box-shadow:0 4px 18px rgba(157,78,221,.4)}
+
+/* ═══ FAVOURITES PANEL ═══ */
+.fav-panel{
+  background:var(--card);border:1px solid rgba(255,215,0,.2);border-radius:22px;
+  margin-bottom:1.2rem;overflow:hidden;
+  animation:fadeUp .8s .32s cubic-bezier(.22,1,.36,1) both;
+  box-shadow:0 0 50px rgba(255,215,0,.05),inset 0 0 50px rgba(255,215,0,.02);
+  transition:box-shadow .3s;
+}
+.fav-panel.has-items{box-shadow:0 0 50px rgba(255,215,0,.12),inset 0 0 50px rgba(255,215,0,.03)}
+.fav-hdr{display:flex;align-items:center;gap:12px;padding:14px 20px;cursor:pointer;user-select:none;background:linear-gradient(90deg,rgba(255,215,0,.07) 0%,transparent 65%);transition:background .2s}
+.fav-hdr:hover{background:linear-gradient(90deg,rgba(255,215,0,.13) 0%,transparent 65%)}
+.fav-hdr-icon{font-size:20px;animation:starSpin 4s ease-in-out infinite;filter:drop-shadow(0 0 8px #ffd700)}
+@keyframes starSpin{0%,100%{transform:rotate(-10deg) scale(1)}50%{transform:rotate(10deg) scale(1.15)}}
+.fav-hdr-title{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--gold);flex:1;letter-spacing:.02em}
+.fav-hdr-sub{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,215,0,.5);margin-right:8px}
+.fav-pill{font-family:'Space Mono',monospace;font-size:10px;background:rgba(255,215,0,.12);color:var(--gold);border:1px solid rgba(255,215,0,.25);border-radius:99px;padding:3px 11px;letter-spacing:.04em;transition:background .2s}
+.fav-chevron{font-size:10px;color:var(--gold);transition:transform .3s cubic-bezier(.22,1,.36,1);margin-left:6px}
+.fav-panel.open .fav-chevron{transform:rotate(90deg)}
+.fav-body{display:none;border-top:1px solid rgba(255,215,0,.1)}
+.fav-body.open{display:block;animation:expandIn .3s cubic-bezier(.22,1,.36,1)}
+@keyframes expandIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.fav-empty{padding:2.5rem;text-align:center;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);line-height:1.8}
+.fav-empty-icon{font-size:2.5rem;display:block;margin-bottom:.8rem;filter:grayscale(.6)}
+.fav-list{display:flex;flex-direction:column}
+.fav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;border-bottom:1px solid rgba(255,255,255,.03);transition:background .12s}
+.fav-item:last-child{border-bottom:none}
+.fav-item:hover{background:rgba(255,215,0,.04)}
+.fav-item-num{font-family:'Space Mono',monospace;font-size:11px;color:rgba(255,255,255,.2);width:40px;flex-shrink:0}
+.fav-item-name{flex:1;font-size:13px;font-weight:500}
+.fav-item-name a{color:#f9c74f;text-decoration:none;transition:color .15s}
+.fav-item-name a:hover{color:#fff}
+.fav-item-topic{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-right:6px;white-space:nowrap}
+.fav-rm{background:none;border:none;cursor:pointer;color:var(--hard);font-size:13px;opacity:.4;transition:opacity .2s,transform .2s;padding:2px 5px}
+.fav-rm:hover{opacity:1;transform:scale(1.25)}
+.fav-footer{padding:12px 20px;border-top:1px solid rgba(255,215,0,.08)}
+.fav-clear{font-family:'Space Mono',monospace;font-size:10px;padding:6px 14px;border-radius:8px;border:1px solid rgba(255,68,102,.25);background:rgba(255,68,102,.06);color:var(--hard);cursor:pointer;transition:all .2s}
+.fav-clear:hover{background:rgba(255,68,102,.14)}
+
+/* ═══ TOPIC BLOCKS ═══ */
+.topics-wrap{animation:fadeUp .8s .38s cubic-bezier(.22,1,.36,1) both}
+.tblock{
+  border:1px solid var(--border);border-radius:20px;margin-bottom:10px;
+  overflow:hidden;background:var(--card);
+  transition:border-color .2s,box-shadow .2s,transform .15s;
+}
+.tblock:hover{border-color:rgba(255,255,255,.12);transform:translateX(2px)}
+.tblock.topen{box-shadow:0 12px 60px rgba(0,0,0,.5);transform:translateX(0)}
+.tblock.topen .t-chevron{transform:rotate(90deg)}
+
+.t-hdr{display:flex;align-items:center;gap:12px;padding:13px 18px;cursor:pointer;user-select:none;position:relative;overflow:hidden}
+.t-hdr::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tc,#555);border-radius:0 2px 2px 0;opacity:.8}
+.t-hdr::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(var(--trgb,80,80,80),.1) 0%,transparent 45%);pointer-events:none}
+
+.t-icon-wrap{
+  width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;position:relative;overflow:hidden;
+  background:rgba(var(--trgb,80,80,80),.18);
+  box-shadow:0 4px 16px rgba(var(--trgb,80,80,80),.25);
+  transition:transform .25s,box-shadow .25s;
+}
+.t-hdr:hover .t-icon-wrap{transform:scale(1.1) rotate(-6deg);box-shadow:0 6px 24px rgba(var(--trgb,80,80,80),.45)}
+.t-icon-wrap::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.25),transparent 60%)}
+
+.t-info{flex:1;min-width:0}
+.t-name{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-meta{display:flex;align-items:center;gap:8px;margin-top:3px}
+.t-tip{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted)}
+.t-mini-e,.t-mini-m,.t-mini-h{font-family:'Space Mono',monospace;font-size:8px;padding:1px 5px;border-radius:4px;font-weight:700}
+.t-mini-e{background:rgba(0,255,163,.1);color:var(--easy)}
+.t-mini-m{background:rgba(255,204,68,.1);color:var(--med)}
+.t-mini-h{background:rgba(255,68,102,.1);color:var(--hard)}
+
+.t-progress{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.t-pbar{width:54px;height:5px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden}
+.t-pfill{height:100%;border-radius:99px;background:var(--tc,#555);width:0%;transition:width .7s cubic-bezier(.22,1,.36,1);box-shadow:0 0 8px var(--tc,#555)}
+.t-cnt{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);min-width:34px;text-align:right}
+.t-chevron{font-size:10px;color:var(--muted);transition:transform .3s cubic-bezier(.22,1,.36,1);margin-left:4px}
+
+.t-body{display:none;border-top:1px solid var(--border)}
+.t-body.topen{display:block;animation:expandIn .28s cubic-bezier(.22,1,.36,1)}
+
+/* table */
+.q-table{width:100%;border-collapse:collapse}
+.q-table thead th{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:8px 16px;text-align:left;background:rgba(255,255,255,.018);border-bottom:1px solid var(--border)}
+.q-table tbody tr{transition:background .1s;border-bottom:1px solid rgba(255,255,255,.022)}
+.q-table tbody tr:hover{background:rgba(255,255,255,.03)}
+.q-table tbody tr.done-r{background:rgba(0,255,163,.025)}
+.q-table tbody tr.fav-r td .q-name a{color:var(--gold)!important}
+td{padding:8px 16px;font-size:12.5px;vertical-align:middle}
+.q-num{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,.18);width:42px}
+.q-name a{color:#b4a9ff;text-decoration:none;font-weight:500;transition:color .15s}
+.q-name a:hover{color:#fff}
+.done-r .q-name a{text-decoration:line-through;color:var(--easy)!important;opacity:.65}
+.badge{display:inline-block;font-family:'Space Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.07em;padding:2px 7px;border-radius:99px;text-transform:uppercase}
+.be{background:rgba(0,255,163,.1);color:var(--easy);border:1px solid rgba(0,255,163,.2)}
+.bm{background:rgba(255,204,68,.1);color:var(--med);border:1px solid rgba(255,204,68,.2)}
+.bh{background:rgba(255,68,102,.1);color:var(--hard);border:1px solid rgba(255,68,102,.2)}
+.q-actions{text-align:right;white-space:nowrap}
+.star-btn{font-size:13px;background:none;border:none;cursor:pointer;padding:2px 4px;opacity:.25;filter:grayscale(1);transition:opacity .2s,transform .2s,filter .2s;line-height:1}
+.star-btn:hover{opacity:.8;transform:scale(1.25);filter:none}
+.star-btn.on{opacity:1;filter:drop-shadow(0 0 5px #ffd700);animation:starPop .3s cubic-bezier(.22,1,.36,1)}
+@keyframes starPop{0%{transform:scale(1.7)}100%{transform:scale(1)}}
+.dbtn{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.04em;padding:4px 11px;border-radius:7px;border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--muted);cursor:pointer;transition:all .18s}
+.dbtn:hover{border-color:var(--easy);color:var(--easy);background:rgba(0,255,163,.07)}
+.dbtn.on{background:rgba(0,255,163,.1);border-color:rgba(0,255,163,.28);color:var(--easy)}
+
+/* ═══ SCROLLBAR ═══ */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(157,78,221,.4);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:rgba(157,78,221,.7)}
+
+/* ═══ SECTION DIVIDER ═══ */
+.section-label{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:1.8rem 0 .7rem;display:flex;align-items:center;gap:10px}
+.section-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.08),transparent)}
+
+@media(max-width:640px){
+  .scoreboard{grid-template-columns:1fr;text-align:center}
+  .score-right{align-items:center}
+  .stat-row{grid-template-columns:repeat(2,1fr)}
+  .t-name{font-size:11px}
+  td{padding:7px 10px;font-size:11.5px}
+}
+</style>
+</head>
+<body>
+
+<!-- Aurora blobs -->
+<div class="aurora" id="aurora"></div>
+<!-- Floating icons -->
+<div id="floatLayer"></div>
+
+<!-- SVG Gradient defs -->
+<svg style="position:absolute;width:0;height:0">
+  <defs>
+    <linearGradient id="mainGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#9d4edd"/>
+      <stop offset="50%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#00ffa3"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">⚡ COMPLETE ROADMAP · ALL TOPICS · 500 QUESTIONS</div>
+    <h1>LEETCODE<br>MASTER PLAN</h1>
+    <p class="hero-sub"><strong>25 topics</strong> · Arrays to Advanced Graphs · Queues · DP · Everything</p>
+  </div>
+
+  <!-- SCOREBOARD -->
+  <div class="scoreboard" style="animation-delay:.1s">
+    <div style="position:relative;width:90px;height:90px;flex-shrink:0">
+      <svg width="90" height="90" viewBox="0 0 90 90" class="ring-svg">
+        <circle class="r-bg" cx="45" cy="45" r="39" fill="none" stroke-width="6"/>
+        <circle class="r-fill" id="ringFill" cx="45" cy="45" r="39" fill="none" stroke-width="6"/>
+      </svg>
+      <div class="ring-inner">
+        <div class="ring-pct" id="ringPct">0%</div>
+        <div class="ring-lbl">DONE</div>
+      </div>
+    </div>
+    <div class="score-mid">
+      <div class="score-title" id="scoreTitle">LET'S BEGIN 🚀</div>
+      <div class="score-sub" id="scoreSub">0 / 500 solved</div>
+      <div class="mega-bar"><div class="mega-fill" id="megaFill"></div></div>
+    </div>
+    <div class="score-right">
+      <button class="reset-btn" onclick="resetAll()">⟳ RESET ALL</button>
+    </div>
+  </div>
+
+  <!-- STAT PILLS -->
+  <div class="stat-row">
+    <div class="sp sp-total"><div class="sp-shine"></div><span class="sp-num" id="sTotal">500</span><div class="sp-lbl">Total</div></div>
+    <div class="sp sp-e"><div class="sp-shine"></div><span class="sp-num" id="sE">0</span><div class="sp-lbl">Easy</div></div>
+    <div class="sp sp-m"><div class="sp-shine"></div><span class="sp-num" id="sM">0</span><div class="sp-lbl">Medium</div></div>
+    <div class="sp sp-h"><div class="sp-shine"></div><span class="sp-num" id="sH">0</span><div class="sp-lbl">Hard</div></div>
+  </div>
+
+  <!-- NAV TABS -->
+  <div class="nav-tabs">
+    <button class="ntab active" onclick="filt('all',this)">ALL</button>
+    <button class="ntab" onclick="filt('easy',this)">🟢 EASY</button>
+    <button class="ntab" onclick="filt('medium',this)">🟡 MEDIUM</button>
+    <button class="ntab" onclick="filt('hard',this)">🔴 HARD</button>
+    <button class="ntab" onclick="filt('done',this)">✓ DONE</button>
+    <button class="ntab" onclick="filt('todo',this)">◯ TODO</button>
+    <button class="ntab" onclick="filt('fav',this)">⭐ FAVOURITES</button>
+  </div>
+
+  <!-- FAVOURITES PANEL -->
+  <div class="fav-panel" id="favPanel">
+    <div class="fav-hdr" onclick="togFavPanel()">
+      <span class="fav-hdr-icon">⭐</span>
+      <span class="fav-hdr-title">TOUGH QUESTIONS — FAVOURITES</span>
+      <span class="fav-hdr-sub">save hard ones to revisit</span>
+      <span class="fav-pill" id="favPill">0 saved</span>
+      <span class="fav-chevron" id="favChev">▶</span>
+    </div>
+    <div class="fav-body" id="favBody">
+      <div id="favContent"></div>
+    </div>
+  </div>
+
+  <!-- TOPIC LIST -->
+  <div class="topics-wrap" id="topicRoot"></div>
+
+</div><!-- /wrap -->
+
+<script>
+/* ══════════════════════════════════════════
+   TOPIC CONFIG  — 25 topics, ~500 questions
+══════════════════════════════════════════ */
+const TC=[
+  {name:"Arrays & Hashing",        icon:"⚡", hex:"#7c3aed", rgb:"124,58,237",   tip:"Foundation of everything"},
+  {name:"Two Pointers",            icon:"🎯", hex:"#06b6d4", rgb:"6,182,212",    tip:"Left & right dance"},
+  {name:"Sliding Window",          icon:"🪟", hex:"#f59e0b", rgb:"245,158,11",   tip:"Variable window magic"},
+  {name:"Stack",                   icon:"📚", hex:"#ef4444", rgb:"239,68,68",    tip:"LIFO powerhouse"},
+  {name:"Queue & Deque",           icon:"🚌", hex:"#10b981", rgb:"16,185,129",   tip:"FIFO & double-ended"},
+  {name:"Binary Search",           icon:"🔍", hex:"#3b82f6", rgb:"59,130,246",   tip:"Halving the problem"},
+  {name:"Linked List",             icon:"🔗", hex:"#ec4899", rgb:"236,72,153",   tip:"Node chains"},
+  {name:"Trees",                   icon:"🌲", hex:"#22c55e", rgb:"34,197,94",    tip:"DFS & BFS on trees"},
+  {name:"Binary Search Tree",      icon:"🔮", hex:"#8b5cf6", rgb:"139,92,246",   tip:"Ordered tree ops"},
+  {name:"Heap / Priority Queue",   icon:"⛏️", hex:"#f97316", rgb:"249,115,22",   tip:"Min/Max in O(log n)"},
+  {name:"Hashing & Maps",          icon:"🗺️", hex:"#06d6a0", rgb:"6,214,160",    tip:"O(1) lookup king"},
+  {name:"Graphs — BFS",            icon:"🕸️", hex:"#14b8a6", rgb:"20,184,166",   tip:"Level by level"},
+  {name:"Graphs — DFS",            icon:"🧭", hex:"#a855f7", rgb:"168,85,247",   tip:"Go deep first"},
+  {name:"Union Find",              icon:"🤝", hex:"#fb923c", rgb:"251,146,60",   tip:"Disjoint set union"},
+  {name:"Topological Sort",        icon:"🗂️", hex:"#e879f9", rgb:"232,121,249",  tip:"DAG ordering"},
+  {name:"Dynamic Prog. 1D",        icon:"💎", hex:"#fbbf24", rgb:"251,191,36",   tip:"Memo & tabulation"},
+  {name:"Dynamic Prog. 2D",        icon:"🔮", hex:"#6366f1", rgb:"99,102,241",   tip:"Grid DP mastery"},
+  {name:"Backtracking",            icon:"🔄", hex:"#f43f5e", rgb:"244,63,94",    tip:"Explore & prune"},
+  {name:"Greedy",                  icon:"💡", hex:"#84cc16", rgb:"132,204,22",   tip:"Local optimal wins"},
+  {name:"Intervals",               icon:"📅", hex:"#0ea5e9", rgb:"14,165,233",   tip:"Merge & schedule"},
+  {name:"Tries",                   icon:"🔡", hex:"#d97706", rgb:"217,119,6",    tip:"Prefix tree ops"},
+  {name:"Bit Manipulation",        icon:"🔢", hex:"#06b6d4", rgb:"6,182,212",    tip:"Binary wizardry"},
+  {name:"Math & Geometry",         icon:"📐", hex:"#e11d48", rgb:"225,29,72",    tip:"Number theory"},
+  {name:"Advanced Graphs",         icon:"🛰️", hex:"#7c3aed", rgb:"124,58,237",   tip:"Dijkstra & MST"},
+  {name:"Sorting Algorithms",      icon:"↕️", hex:"#059669", rgb:"5,150,105",    tip:"Know your sorts"},
+  {name:"String Manipulation",     icon:"✏️", hex:"#6366f1", rgb:"99,102,241",   tip:"Parse, reverse, match"},
+];
+
+/* ══════════════════════════════════════════
+   500 QUESTIONS  (25 topics × ~20 each)
+══════════════════════════════════════════ */
+const TOPICS=[
+/* 0 — Arrays & Hashing (25) */
+{ti:0,qs:[
+  {n:1,t:"Two Sum",d:"easy"},{n:217,t:"Contains Duplicate",d:"easy"},{n:242,t:"Valid Anagram",d:"easy"},
+  {n:49,t:"Group Anagrams",d:"medium"},{n:347,t:"Top K Frequent Elements",d:"medium"},
+  {n:238,t:"Product of Array Except Self",d:"medium"},{n:36,t:"Valid Sudoku",d:"medium"},
+  {n:128,t:"Longest Consecutive Sequence",d:"medium"},{n:448,t:"Find All Numbers Disappeared in Array",d:"easy"},
+  {n:41,t:"First Missing Positive",d:"hard"},{n:287,t:"Find the Duplicate Number",d:"medium"},
+  {n:442,t:"Find All Duplicates in Array",d:"medium"},{n:380,t:"Insert Delete GetRandom O(1)",d:"medium"},
+  {n:299,t:"Bulls and Cows",d:"medium"},{n:189,t:"Rotate Array",d:"medium"},
+  {n:334,t:"Increasing Triplet Subsequence",d:"medium"},{n:54,t:"Spiral Matrix",d:"medium"},
+  {n:48,t:"Rotate Image",d:"medium"},{n:73,t:"Set Matrix Zeroes",d:"medium"},
+  {n:289,t:"Game of Life",d:"medium"},{n:560,t:"Subarray Sum Equals K",d:"medium"},
+  {n:303,t:"Range Sum Query Immutable",d:"easy"},{n:304,t:"Range Sum Query 2D Immutable",d:"medium"},
+  {n:724,t:"Find Pivot Index",d:"easy"},{n:1480,t:"Running Sum of 1d Array",d:"easy"},
+]},
+/* 1 — Two Pointers (20) */
+{ti:1,qs:[
+  {n:125,t:"Valid Palindrome",d:"easy"},{n:167,t:"Two Sum II Input Array Is Sorted",d:"medium"},
+  {n:15,t:"3Sum",d:"medium"},{n:11,t:"Container With Most Water",d:"medium"},
+  {n:42,t:"Trapping Rain Water",d:"hard"},{n:26,t:"Remove Duplicates from Sorted Array",d:"easy"},
+  {n:27,t:"Remove Element",d:"easy"},{n:977,t:"Squares of a Sorted Array",d:"easy"},
+  {n:283,t:"Move Zeroes",d:"easy"},{n:344,t:"Reverse String",d:"easy"},
+  {n:345,t:"Reverse Vowels of a String",d:"easy"},{n:16,t:"3Sum Closest",d:"medium"},
+  {n:18,t:"4Sum",d:"medium"},{n:75,t:"Sort Colors",d:"medium"},
+  {n:88,t:"Merge Sorted Array",d:"easy"},{n:392,t:"Is Subsequence",d:"easy"},
+  {n:680,t:"Valid Palindrome II",d:"easy"},{n:581,t:"Shortest Unsorted Continuous Subarray",d:"medium"},
+  {n:986,t:"Interval List Intersections",d:"medium"},{n:1679,t:"Max Number of K-Sum Pairs",d:"medium"},
+]},
+/* 2 — Sliding Window (20) */
+{ti:2,qs:[
+  {n:121,t:"Best Time to Buy and Sell Stock",d:"easy"},{n:3,t:"Longest Substring Without Repeating Characters",d:"medium"},
+  {n:424,t:"Longest Repeating Character Replacement",d:"medium"},{n:567,t:"Permutation in String",d:"medium"},
+  {n:76,t:"Minimum Window Substring",d:"hard"},{n:239,t:"Sliding Window Maximum",d:"hard"},
+  {n:438,t:"Find All Anagrams in a String",d:"medium"},{n:643,t:"Maximum Average Subarray I",d:"easy"},
+  {n:1456,t:"Maximum Number of Vowels in a Substring",d:"medium"},{n:1004,t:"Max Consecutive Ones III",d:"medium"},
+  {n:1493,t:"Longest Subarray of 1s After Deleting One Element",d:"medium"},{n:904,t:"Fruit Into Baskets",d:"medium"},
+  {n:930,t:"Binary Subarrays With Sum",d:"medium"},{n:992,t:"Subarrays with K Different Integers",d:"hard"},
+  {n:1234,t:"Replace the Substring for Balanced String",d:"medium"},{n:1052,t:"Grumpy Bookstore Owner",d:"medium"},
+  {n:1423,t:"Maximum Points You Can Obtain from Cards",d:"medium"},{n:1695,t:"Maximum Erasure Value",d:"medium"},
+  {n:2024,t:"Maximize the Confusion of an Exam",d:"medium"},{n:2090,t:"K Radius Subarray Averages",d:"medium"},
+]},
+/* 3 — Stack (20) */
+{ti:3,qs:[
+  {n:20,t:"Valid Parentheses",d:"easy"},{n:155,t:"Min Stack",d:"medium"},
+  {n:150,t:"Evaluate Reverse Polish Notation",d:"medium"},{n:22,t:"Generate Parentheses",d:"medium"},
+  {n:739,t:"Daily Temperatures",d:"medium"},{n:853,t:"Car Fleet",d:"medium"},
+  {n:84,t:"Largest Rectangle in Histogram",d:"hard"},{n:394,t:"Decode String",d:"medium"},
+  {n:32,t:"Longest Valid Parentheses",d:"hard"},{n:71,t:"Simplify Path",d:"medium"},
+  {n:726,t:"Number of Atoms",d:"hard"},{n:496,t:"Next Greater Element I",d:"easy"},
+  {n:503,t:"Next Greater Element II",d:"medium"},{n:456,t:"132 Pattern",d:"medium"},
+  {n:1019,t:"Next Greater Node In Linked List",d:"medium"},{n:316,t:"Remove Duplicate Letters",d:"medium"},
+  {n:402,t:"Remove K Digits",d:"medium"},{n:1209,t:"Remove All Adjacent Duplicates in String II",d:"medium"},
+  {n:901,t:"Online Stock Span",d:"medium"},{n:907,t:"Sum of Subarray Minimums",d:"medium"},
+]},
+/* 4 — Queue & Deque (20) */
+{ti:4,qs:[
+  {n:232,t:"Implement Queue using Stacks",d:"easy"},{n:225,t:"Implement Stack using Queues",d:"easy"},
+  {n:933,t:"Number of Recent Calls",d:"easy"},{n:346,t:"Moving Average from Data Stream",d:"easy"},
+  {n:622,t:"Design Circular Queue",d:"medium"},{n:641,t:"Design Circular Deque",d:"medium"},
+  {n:239,t:"Sliding Window Maximum",d:"hard"},{n:862,t:"Shortest Subarray with Sum at Least K",d:"hard"},
+  {n:918,t:"Maximum Sum Circular Subarray",d:"medium"},{n:950,t:"Reveal Cards in Increasing Order",d:"medium"},
+  {n:387,t:"First Unique Character in a String",d:"easy"},{n:649,t:"Dota2 Senate",d:"medium"},
+  {n:1438,t:"Longest Continuous Subarray With Absolute Diff Less Than or Equal to Limit",d:"medium"},
+  {n:2073,t:"Time Needed to Buy Tickets",d:"easy"},{n:1700,t:"Number of Students Unable to Eat Lunch",d:"easy"},
+  {n:1670,t:"Design Front Middle Back Queue",d:"medium"},{n:1172,t:"Dinner Plate Stacks",d:"hard"},
+  {n:353,t:"Design Snake Game",d:"medium"},{n:362,t:"Design Hit Counter",d:"medium"},
+  {n:1352,t:"Product of the Last K Numbers",d:"medium"},
+]},
+/* 5 — Binary Search (20) */
+{ti:5,qs:[
+  {n:704,t:"Binary Search",d:"easy"},{n:74,t:"Search a 2D Matrix",d:"medium"},
+  {n:875,t:"Koko Eating Bananas",d:"medium"},{n:153,t:"Find Minimum in Rotated Sorted Array",d:"medium"},
+  {n:33,t:"Search in Rotated Sorted Array",d:"medium"},{n:981,t:"Time Based Key-Value Store",d:"medium"},
+  {n:4,t:"Median of Two Sorted Arrays",d:"hard"},{n:34,t:"Find First and Last Position of Element in Sorted Array",d:"medium"},
+  {n:35,t:"Search Insert Position",d:"easy"},{n:278,t:"First Bad Version",d:"easy"},
+  {n:162,t:"Find Peak Element",d:"medium"},{n:540,t:"Single Element in a Sorted Array",d:"medium"},
+  {n:658,t:"Find K Closest Elements",d:"medium"},{n:1011,t:"Capacity To Ship Packages Within D Days",d:"medium"},
+  {n:410,t:"Split Array Largest Sum",d:"hard"},{n:719,t:"Find K-th Smallest Pair Distance",d:"hard"},
+  {n:69,t:"Sqrt(x)",d:"easy"},{n:367,t:"Valid Perfect Square",d:"easy"},
+  {n:1231,t:"Divide Chocolate",d:"hard"},{n:1482,t:"Minimum Number of Days to Make m Bouquets",d:"medium"},
+]},
+/* 6 — Linked List (20) */
+{ti:6,qs:[
+  {n:206,t:"Reverse Linked List",d:"easy"},{n:21,t:"Merge Two Sorted Lists",d:"easy"},
+  {n:143,t:"Reorder List",d:"medium"},{n:19,t:"Remove Nth Node From End of List",d:"medium"},
+  {n:138,t:"Copy List with Random Pointer",d:"medium"},{n:2,t:"Add Two Numbers",d:"medium"},
+  {n:141,t:"Linked List Cycle",d:"easy"},{n:146,t:"LRU Cache",d:"medium"},
+  {n:23,t:"Merge k Sorted Lists",d:"hard"},{n:25,t:"Reverse Nodes in k-Group",d:"hard"},
+  {n:61,t:"Rotate List",d:"medium"},{n:82,t:"Remove Duplicates from Sorted List II",d:"medium"},
+  {n:83,t:"Remove Duplicates from Sorted List",d:"easy"},{n:92,t:"Reverse Linked List II",d:"medium"},
+  {n:160,t:"Intersection of Two Linked Lists",d:"easy"},{n:234,t:"Palindrome Linked List",d:"easy"},
+  {n:328,t:"Odd Even Linked List",d:"medium"},{n:430,t:"Flatten a Multilevel Doubly Linked List",d:"medium"},
+  {n:148,t:"Sort List",d:"medium"},{n:1171,t:"Remove Zero Sum Consecutive Nodes from Linked List",d:"medium"},
+]},
+/* 7 — Trees (20) */
+{ti:7,qs:[
+  {n:226,t:"Invert Binary Tree",d:"easy"},{n:104,t:"Maximum Depth of Binary Tree",d:"easy"},
+  {n:543,t:"Diameter of Binary Tree",d:"easy"},{n:110,t:"Balanced Binary Tree",d:"easy"},
+  {n:100,t:"Same Tree",d:"easy"},{n:572,t:"Subtree of Another Tree",d:"easy"},
+  {n:102,t:"Binary Tree Level Order Traversal",d:"medium"},{n:199,t:"Binary Tree Right Side View",d:"medium"},
+  {n:1448,t:"Count Good Nodes in Binary Tree",d:"medium"},{n:105,t:"Construct Binary Tree from Preorder and Inorder Traversal",d:"medium"},
+  {n:124,t:"Binary Tree Maximum Path Sum",d:"hard"},{n:297,t:"Serialize and Deserialize Binary Tree",d:"hard"},
+  {n:112,t:"Path Sum",d:"easy"},{n:113,t:"Path Sum II",d:"medium"},
+  {n:129,t:"Sum Root to Leaf Numbers",d:"medium"},{n:236,t:"Lowest Common Ancestor of a Binary Tree",d:"medium"},
+  {n:437,t:"Path Sum III",d:"medium"},{n:114,t:"Flatten Binary Tree to Linked List",d:"medium"},
+  {n:222,t:"Count Complete Tree Nodes",d:"medium"},{n:337,t:"House Robber III",d:"medium"},
+]},
+/* 8 — Binary Search Tree (20) */
+{ti:8,qs:[
+  {n:700,t:"Search in a Binary Search Tree",d:"easy"},{n:701,t:"Insert into a Binary Search Tree",d:"medium"},
+  {n:450,t:"Delete Node in a BST",d:"medium"},{n:235,t:"Lowest Common Ancestor of a BST",d:"medium"},
+  {n:98,t:"Validate Binary Search Tree",d:"medium"},{n:230,t:"Kth Smallest Element in a BST",d:"medium"},
+  {n:173,t:"Binary Search Tree Iterator",d:"medium"},{n:1038,t:"Binary Search Tree to Greater Sum Tree",d:"medium"},
+  {n:530,t:"Minimum Absolute Difference in BST",d:"easy"},{n:501,t:"Find Mode in Binary Search Tree",d:"easy"},
+  {n:669,t:"Trim a Binary Search Tree",d:"medium"},{n:108,t:"Convert Sorted Array to Binary Search Tree",d:"easy"},
+  {n:109,t:"Convert Sorted List to Binary Search Tree",d:"medium"},{n:783,t:"Minimum Distance Between BST Nodes",d:"easy"},
+  {n:938,t:"Range Sum of BST",d:"easy"},{n:1305,t:"All Elements in Two Binary Search Trees",d:"medium"},
+  {n:99,t:"Recover Binary Search Tree",d:"medium"},{n:255,t:"Verify Preorder Sequence in Binary Search Tree",d:"medium"},
+  {n:285,t:"Inorder Successor in BST",d:"medium"},{n:270,t:"Closest Binary Search Tree Value",d:"easy"},
+]},
+/* 9 — Heap / Priority Queue (20) */
+{ti:9,qs:[
+  {n:703,t:"Kth Largest Element in a Stream",d:"easy"},{n:1046,t:"Last Stone Weight",d:"easy"},
+  {n:973,t:"K Closest Points to Origin",d:"medium"},{n:215,t:"Kth Largest Element in an Array",d:"medium"},
+  {n:621,t:"Task Scheduler",d:"medium"},{n:355,t:"Design Twitter",d:"medium"},
+  {n:295,t:"Find Median from Data Stream",d:"hard"},{n:786,t:"K-th Smallest Prime Fraction",d:"medium"},
+  {n:1642,t:"Furthest Building You Can Reach",d:"medium"},{n:1675,t:"Minimize Deviation in Array",d:"hard"},
+  {n:502,t:"IPO",d:"hard"},{n:871,t:"Minimum Number of Refueling Stops",d:"hard"},
+  {n:857,t:"Minimum Cost to Hire K Workers",d:"hard"},{n:378,t:"Kth Smallest Element in a Sorted Matrix",d:"medium"},
+  {n:1167,t:"Minimum Cost to Connect Sticks",d:"medium"},{n:1353,t:"Maximum Number of Events That Can Be Attended",d:"medium"},
+  {n:630,t:"Course Schedule III",d:"hard"},{n:407,t:"Trapping Rain Water II",d:"hard"},
+  {n:1792,t:"Maximum Average Pass Ratio",d:"medium"},{n:2182,t:"Construct String With Repeat Limit",d:"medium"},
+]},
+/* 10 — Hashing & Maps (20) */
+{ti:10,qs:[
+  {n:1,t:"Two Sum",d:"easy"},{n:202,t:"Happy Number",d:"easy"},
+  {n:205,t:"Isomorphic Strings",d:"easy"},{n:290,t:"Word Pattern",d:"easy"},
+  {n:349,t:"Intersection of Two Arrays",d:"easy"},{n:350,t:"Intersection of Two Arrays II",d:"easy"},
+  {n:383,t:"Ransom Note",d:"easy"},{n:387,t:"First Unique Character in a String",d:"easy"},
+  {n:409,t:"Longest Palindrome",d:"easy"},{n:454,t:"4Sum II",d:"medium"},
+  {n:49,t:"Group Anagrams",d:"medium"},{n:554,t:"Brick Wall",d:"medium"},
+  {n:560,t:"Subarray Sum Equals K",d:"medium"},{n:525,t:"Contiguous Array",d:"medium"},
+  {n:974,t:"Subarray Sums Divisible by K",d:"medium"},{n:1010,t:"Pairs of Songs With Total Durations Divisible by 60",d:"medium"},
+  {n:1248,t:"Count Number of Nice Subarrays",d:"medium"},{n:1577,t:"Number of Ways Where Square of Number Is Equal to Product of Two Numbers",d:"medium"},
+  {n:146,t:"LRU Cache",d:"medium"},{n:460,t:"LFU Cache",d:"hard"},
+]},
+/* 11 — Graphs BFS (20) */
+{ti:11,qs:[
+  {n:200,t:"Number of Islands",d:"medium"},{n:994,t:"Rotting Oranges",d:"medium"},
+  {n:127,t:"Word Ladder",d:"hard"},{n:815,t:"Bus Routes",d:"hard"},
+  {n:1345,t:"Jump Game IV",d:"hard"},{n:1091,t:"Shortest Path in Binary Matrix",d:"medium"},
+  {n:542,t:"01 Matrix",d:"medium"},{n:1162,t:"As Far from Land as Possible",d:"medium"},
+  {n:417,t:"Pacific Atlantic Water Flow",d:"medium"},{n:130,t:"Surrounded Regions",d:"medium"},
+  {n:133,t:"Clone Graph",d:"medium"},{n:695,t:"Max Area of Island",d:"medium"},
+  {n:1129,t:"Shortest Path with Alternating Colors",d:"medium"},{n:1376,t:"Time Needed to Inform All Employees",d:"medium"},
+  {n:863,t:"All Nodes Distance K in Binary Tree",d:"medium"},{n:1293,t:"Shortest Path in a Grid with Obstacles Elimination",d:"hard"},
+  {n:909,t:"Snakes and Ladders",d:"medium"},{n:752,t:"Open the Lock",d:"medium"},
+  {n:1197,t:"Minimum Knight Moves",d:"medium"},{n:2059,t:"Minimum Operations to Convert Number",d:"medium"},
+]},
+/* 12 — Graphs DFS (20) */
+{ti:12,qs:[
+  {n:207,t:"Course Schedule",d:"medium"},{n:210,t:"Course Schedule II",d:"medium"},
+  {n:684,t:"Redundant Connection",d:"medium"},{n:323,t:"Number of Connected Components in an Undirected Graph",d:"medium"},
+  {n:785,t:"Is Graph Bipartite?",d:"medium"},{n:886,t:"Possible Bipartition",d:"medium"},
+  {n:332,t:"Reconstruct Itinerary",d:"hard"},{n:1192,t:"Critical Connections in a Network",d:"hard"},
+  {n:399,t:"Evaluate Division",d:"medium"},{n:743,t:"Network Delay Time",d:"medium"},
+  {n:1631,t:"Path With Minimum Effort",d:"medium"},{n:778,t:"Swim in Rising Water",d:"hard"},
+  {n:802,t:"Find Eventual Safe States",d:"medium"},{n:1466,t:"Reorder Routes to Make All Paths Lead to the City Zero",d:"medium"},
+  {n:547,t:"Number of Provinces",d:"medium"},{n:1254,t:"Number of Closed Islands",d:"medium"},
+  {n:841,t:"Keys and Rooms",d:"medium"},{n:1020,t:"Number of Enclaves",d:"medium"},
+  {n:1267,t:"Count Servers that Communicate",d:"medium"},{n:1059,t:"All Paths from Source Lead to Destination",d:"medium"},
+]},
+/* 13 — Union Find (20) */
+{ti:13,qs:[
+  {n:684,t:"Redundant Connection",d:"medium"},{n:685,t:"Redundant Connection II",d:"hard"},
+  {n:547,t:"Number of Provinces",d:"medium"},{n:200,t:"Number of Islands",d:"medium"},
+  {n:990,t:"Satisfiability of Equality Equations",d:"medium"},{n:1319,t:"Number of Operations to Make Network Connected",d:"medium"},
+  {n:1061,t:"Lexicographically Smallest Equivalent String",d:"medium"},{n:1202,t:"Smallest String With Swaps",d:"medium"},
+  {n:1584,t:"Min Cost to Connect All Points",d:"medium"},{n:952,t:"Largest Component Size by Common Factor",d:"hard"},
+  {n:721,t:"Accounts Merge",d:"medium"},{n:1101,t:"The Earliest Moment When Everyone Become Friends",d:"medium"},
+  {n:1697,t:"Checking Existence of Edge Length Limited Paths",d:"hard"},{n:1998,t:"GCD Sort of an Array",d:"hard"},
+  {n:778,t:"Swim in Rising Water",d:"hard"},{n:399,t:"Evaluate Division",d:"medium"},
+  {n:924,t:"Minimize Malware Spread",d:"hard"},{n:928,t:"Minimize Malware Spread II",d:"hard"},
+  {n:959,t:"Regions Cut By Slashes",d:"medium"},{n:1722,t:"Minimize Hamming Distance After Swap Operations",d:"medium"},
+]},
+/* 14 — Topological Sort (15) */
+{ti:14,qs:[
+  {n:207,t:"Course Schedule",d:"medium"},{n:210,t:"Course Schedule II",d:"medium"},
+  {n:269,t:"Alien Dictionary",d:"hard"},{n:444,t:"Sequence Reconstruction",d:"medium"},
+  {n:310,t:"Minimum Height Trees",d:"medium"},{n:329,t:"Longest Increasing Path in a Matrix",d:"hard"},
+  {n:802,t:"Find Eventual Safe States",d:"medium"},{n:1203,t:"Sort Items by Groups Respecting Dependencies",d:"hard"},
+  {n:1059,t:"All Paths from Source Lead to Destination",d:"medium"},{n:2115,t:"Find All Possible Recipes from Given Supplies",d:"medium"},
+  {n:851,t:"Loud and Rich",d:"medium"},{n:1136,t:"Parallel Courses",d:"medium"},
+  {n:2050,t:"Parallel Courses III",d:"hard"},{n:630,t:"Course Schedule III",d:"hard"},
+  {n:1857,t:"Largest Color Value in a Directed Graph",d:"hard"},
+]},
+/* 15 — Dynamic Programming 1D (20) */
+{ti:15,qs:[
+  {n:70,t:"Climbing Stairs",d:"easy"},{n:746,t:"Min Cost Climbing Stairs",d:"easy"},
+  {n:198,t:"House Robber",d:"medium"},{n:213,t:"House Robber II",d:"medium"},
+  {n:5,t:"Longest Palindromic Substring",d:"medium"},{n:647,t:"Palindromic Substrings",d:"medium"},
+  {n:91,t:"Decode Ways",d:"medium"},{n:322,t:"Coin Change",d:"medium"},
+  {n:152,t:"Maximum Product Subarray",d:"medium"},{n:139,t:"Word Break",d:"medium"},
+  {n:300,t:"Longest Increasing Subsequence",d:"medium"},{n:416,t:"Partition Equal Subset Sum",d:"medium"},
+  {n:53,t:"Maximum Subarray",d:"medium"},{n:338,t:"Counting Bits",d:"easy"},
+  {n:279,t:"Perfect Squares",d:"medium"},{n:376,t:"Wiggle Subsequence",d:"medium"},
+  {n:343,t:"Integer Break",d:"medium"},{n:264,t:"Ugly Number II",d:"medium"},
+  {n:740,t:"Delete and Earn",d:"medium"},{n:1137,t:"N-th Tribonacci Number",d:"easy"},
+]},
+/* 16 — Dynamic Programming 2D (20) */
+{ti:16,qs:[
+  {n:62,t:"Unique Paths",d:"medium"},{n:63,t:"Unique Paths II",d:"medium"},
+  {n:1143,t:"Longest Common Subsequence",d:"medium"},{n:309,t:"Best Time to Buy and Sell Stock with Cooldown",d:"medium"},
+  {n:518,t:"Coin Change II",d:"medium"},{n:494,t:"Target Sum",d:"medium"},
+  {n:97,t:"Interleaving String",d:"medium"},{n:115,t:"Distinct Subsequences",d:"hard"},
+  {n:72,t:"Edit Distance",d:"medium"},{n:312,t:"Burst Balloons",d:"hard"},
+  {n:10,t:"Regular Expression Matching",d:"hard"},{n:44,t:"Wildcard Matching",d:"hard"},
+  {n:174,t:"Dungeon Game",d:"hard"},{n:221,t:"Maximal Square",d:"medium"},
+  {n:85,t:"Maximal Rectangle",d:"hard"},{n:741,t:"Cherry Pickup",d:"hard"},
+  {n:1312,t:"Minimum Insertion Steps to Make a String Palindrome",d:"hard"},{n:1092,t:"Shortest Common Supersequence",d:"hard"},
+  {n:1035,t:"Uncrossed Lines",d:"medium"},{n:1458,t:"Max Dot Product of Two Subsequences",d:"hard"},
+]},
+/* 17 — Backtracking (20) */
+{ti:17,qs:[
+  {n:78,t:"Subsets",d:"medium"},{n:39,t:"Combination Sum",d:"medium"},
+  {n:40,t:"Combination Sum II",d:"medium"},{n:46,t:"Permutations",d:"medium"},
+  {n:47,t:"Permutations II",d:"medium"},{n:90,t:"Subsets II",d:"medium"},
+  {n:79,t:"Word Search",d:"medium"},{n:131,t:"Palindrome Partitioning",d:"medium"},
+  {n:17,t:"Letter Combinations of a Phone Number",d:"medium"},{n:51,t:"N-Queens",d:"hard"},
+  {n:52,t:"N-Queens II",d:"hard"},{n:37,t:"Sudoku Solver",d:"hard"},
+  {n:93,t:"Restore IP Addresses",d:"medium"},{n:77,t:"Combinations",d:"medium"},
+  {n:216,t:"Combination Sum III",d:"medium"},{n:473,t:"Matchsticks to Square",d:"medium"},
+  {n:698,t:"Partition to K Equal Sum Subsets",d:"medium"},{n:306,t:"Additive Number",d:"medium"},
+  {n:491,t:"Non-decreasing Subsequences",d:"medium"},{n:526,t:"Beautiful Arrangement",d:"medium"},
+]},
+/* 18 — Greedy (20) */
+{ti:18,qs:[
+  {n:55,t:"Jump Game",d:"medium"},{n:45,t:"Jump Game II",d:"medium"},
+  {n:134,t:"Gas Station",d:"medium"},{n:846,t:"Hand of Straights",d:"medium"},
+  {n:763,t:"Partition Labels",d:"medium"},{n:678,t:"Valid Parenthesis String",d:"medium"},
+  {n:135,t:"Candy",d:"hard"},{n:406,t:"Queue Reconstruction by Height",d:"medium"},
+  {n:452,t:"Minimum Number of Arrows to Burst Balloons",d:"medium"},{n:621,t:"Task Scheduler",d:"medium"},
+  {n:767,t:"Reorganize String",d:"medium"},{n:1710,t:"Maximum Units on a Truck",d:"easy"},
+  {n:330,t:"Patching Array",d:"hard"},{n:1326,t:"Minimum Number of Taps to Open to Water a Garden",d:"hard"},
+  {n:738,t:"Monotone Increasing Digits",d:"medium"},{n:860,t:"Lemonade Change",d:"easy"},
+  {n:881,t:"Boats to Save People",d:"medium"},{n:1647,t:"Minimum Deletions to Make Character Frequencies Unique",d:"medium"},
+  {n:1899,t:"Merge Triplets to Form Target Triplet",d:"medium"},{n:2126,t:"Destroying Asteroids",d:"medium"},
+]},
+/* 19 — Intervals (15) */
+{ti:19,qs:[
+  {n:57,t:"Insert Interval",d:"medium"},{n:56,t:"Merge Intervals",d:"medium"},
+  {n:435,t:"Non-overlapping Intervals",d:"medium"},{n:252,t:"Meeting Rooms",d:"easy"},
+  {n:253,t:"Meeting Rooms II",d:"medium"},{n:1851,t:"Minimum Interval to Include Each Query",d:"hard"},
+  {n:352,t:"Data Stream as Disjoint Intervals",d:"hard"},{n:759,t:"Employee Free Time",d:"hard"},
+  {n:715,t:"Range Module",d:"hard"},{n:636,t:"Exclusive Time of Functions",d:"medium"},
+  {n:986,t:"Interval List Intersections",d:"medium"},{n:1288,t:"Remove Covered Intervals",d:"medium"},
+  {n:1272,t:"Remove Interval",d:"medium"},{n:1229,t:"Meeting Scheduler",d:"medium"},
+  {n:2406,t:"Divide Intervals Into Minimum Number of Groups",d:"medium"},
+]},
+/* 20 — Tries (15) */
+{ti:20,qs:[
+  {n:208,t:"Implement Trie Prefix Tree",d:"medium"},{n:211,t:"Design Add and Search Words Data Structure",d:"medium"},
+  {n:212,t:"Word Search II",d:"hard"},{n:421,t:"Maximum XOR of Two Numbers in an Array",d:"medium"},
+  {n:648,t:"Replace Words",d:"medium"},{n:677,t:"Map Sum Pairs",d:"medium"},
+  {n:720,t:"Longest Word in Dictionary",d:"medium"},{n:745,t:"Prefix and Suffix Search",d:"hard"},
+  {n:820,t:"Short Encoding of Words",d:"medium"},{n:1032,t:"Stream of Characters",d:"hard"},
+  {n:336,t:"Palindrome Pairs",d:"hard"},{n:472,t:"Concatenated Words",d:"hard"},
+  {n:140,t:"Word Break II",d:"hard"},{n:642,t:"Design Search Autocomplete System",d:"hard"},
+  {n:1233,t:"Remove Sub-Folders from the Filesystem",d:"medium"},
+]},
+/* 21 — Bit Manipulation (20) */
+{ti:21,qs:[
+  {n:136,t:"Single Number",d:"easy"},{n:191,t:"Number of 1 Bits",d:"easy"},
+  {n:338,t:"Counting Bits",d:"easy"},{n:190,t:"Reverse Bits",d:"easy"},
+  {n:268,t:"Missing Number",d:"easy"},{n:371,t:"Sum of Two Integers",d:"medium"},
+  {n:137,t:"Single Number II",d:"medium"},{n:260,t:"Single Number III",d:"medium"},
+  {n:318,t:"Maximum Product of Word Lengths",d:"medium"},{n:201,t:"Bitwise AND of Numbers Range",d:"medium"},
+  {n:389,t:"Find the Difference",d:"easy"},{n:477,t:"Total Hamming Distance",d:"medium"},
+  {n:421,t:"Maximum XOR of Two Numbers in an Array",d:"medium"},{n:1318,t:"Minimum Flips to Make a OR b Equal to c",d:"medium"},
+  {n:29,t:"Divide Two Integers",d:"medium"},{n:476,t:"Number Complement",d:"easy"},
+  {n:461,t:"Hamming Distance",d:"easy"},{n:693,t:"Binary Number with Alternating Bits",d:"easy"},
+  {n:762,t:"Prime Number of Set Bits in Binary Representation",d:"easy"},{n:832,t:"Flipping an Image",d:"easy"},
+]},
+/* 22 — Math & Geometry (15) */
+{ti:22,qs:[
+  {n:202,t:"Happy Number",d:"easy"},{n:66,t:"Plus One",d:"easy"},
+  {n:43,t:"Multiply Strings",d:"medium"},{n:50,t:"Pow(x, n)",d:"medium"},
+  {n:149,t:"Max Points on a Line",d:"hard"},{n:166,t:"Fraction to Recurring Decimal",d:"medium"},
+  {n:172,t:"Factorial Trailing Zeroes",d:"medium"},{n:204,t:"Count Primes",d:"medium"},
+  {n:233,t:"Number of Digit One",d:"hard"},{n:273,t:"Integer to English Words",d:"hard"},
+  {n:326,t:"Power of Three",d:"easy"},{n:453,t:"Minimum Moves to Equal Array Elements",d:"medium"},
+  {n:509,t:"Fibonacci Number",d:"easy"},{n:1017,t:"Convert to Base -2",d:"medium"},
+  {n:1780,t:"Check if Number is a Sum of Powers of Three",d:"medium"},
+]},
+/* 23 — Advanced Graphs (15) */
+{ti:23,qs:[
+  {n:1584,t:"Min Cost to Connect All Points",d:"medium"},{n:743,t:"Network Delay Time",d:"medium"},
+  {n:778,t:"Swim in Rising Water",d:"hard"},{n:787,t:"Cheapest Flights Within K Stops",d:"medium"},
+  {n:1489,t:"Find Critical and Pseudo-Critical Edges in MST",d:"hard"},{n:1697,t:"Checking Existence of Edge Length Limited Paths",d:"hard"},
+  {n:882,t:"Reachable Nodes In Subdivided Graph",d:"hard"},{n:1334,t:"Find the City With the Smallest Number of Neighbors",d:"medium"},
+  {n:1514,t:"Path with Maximum Probability",d:"medium"},{n:1168,t:"Optimize Water Distribution in a Village",d:"hard"},
+  {n:1135,t:"Connecting Cities With Minimum Cost",d:"medium"},{n:332,t:"Reconstruct Itinerary",d:"hard"},
+  {n:1192,t:"Critical Connections in a Network",d:"hard"},{n:1129,t:"Shortest Path with Alternating Colors",d:"medium"},
+  {n:2642,t:"Design Graph With Shortest Path Calculator",d:"hard"},
+]},
+/* 24 — Sorting Algorithms (15) */
+{ti:24,qs:[
+  {n:912,t:"Sort an Array",d:"medium"},{n:215,t:"Kth Largest Element in an Array",d:"medium"},
+  {n:347,t:"Top K Frequent Elements",d:"medium"},{n:451,t:"Sort Characters By Frequency",d:"medium"},
+  {n:179,t:"Largest Number",d:"medium"},{n:164,t:"Maximum Gap",d:"hard"},
+  {n:315,t:"Count of Smaller Numbers After Self",d:"hard"},{n:327,t:"Count of Range Sum",d:"hard"},
+  {n:493,t:"Reverse Pairs",d:"hard"},{n:1122,t:"Relative Sort Array",d:"easy"},
+  {n:791,t:"Custom Sort String",d:"medium"},{n:937,t:"Reorder Data in Log Files",d:"medium"},
+  {n:274,t:"H-Index",d:"medium"},{n:75,t:"Sort Colors",d:"medium"},
+  {n:1636,t:"Sort Array by Increasing Frequency",d:"easy"},
+]},
+/* BONUS — String Manipulation (25) */
+{ti:3,qs:[
+  {n:8,t:"String to Integer (atoi)",d:"medium"},{n:14,t:"Longest Common Prefix",d:"easy"},
+  {n:28,t:"Find the Index of the First Occurrence in a String",d:"easy"},{n:38,t:"Count and Say",d:"medium"},
+  {n:58,t:"Length of Last Word",d:"easy"},{n:65,t:"Valid Number",d:"hard"},
+  {n:68,t:"Text Justification",d:"hard"},{n:151,t:"Reverse Words in a String",d:"medium"},
+  {n:290,t:"Word Pattern",d:"easy"},{n:415,t:"Add Strings",d:"easy"},
+  {n:459,t:"Repeated Substring Pattern",d:"easy"},{n:468,t:"Validate IP Address",d:"medium"},
+  {n:520,t:"Detect Capital",d:"easy"},{n:541,t:"Reverse String II",d:"easy"},
+  {n:583,t:"Delete Operation for Two Strings",d:"medium"},{n:647,t:"Palindromic Substrings",d:"medium"},
+  {n:686,t:"Repeated String Match",d:"medium"},{n:763,t:"Partition Labels",d:"medium"},
+  {n:5,t:"Longest Palindromic Substring",d:"medium"},{n:1328,t:"Break a Palindrome",d:"medium"},
+  {n:1160,t:"Find Words That Can Be Formed by Characters",d:"easy"},{n:1065,t:"Index Pairs of a String",d:"easy"},
+  {n:1556,t:"Thousand Separator",d:"easy"},{n:1544,t:"Make The String Great",d:"easy"},
+  {n:2000,t:"Reverse Prefix of Word",d:"easy"},
+]},
+];
+
+/* ─── TOTAL ─── */
+const TOTAL=TOPICS.reduce((s,t)=>s+t.qs.length,0);
+document.getElementById('sTotal').textContent=TOTAL;
+
+/* ─── STORAGE ─── */
+const SK='lc500_v4', SKF='lc500_fav_v2';
+const done=new Set(JSON.parse(localStorage.getItem(SK)||'[]'));
+const favs=new Set(JSON.parse(localStorage.getItem(SKF)||'[]'));
+function save(){localStorage.setItem(SK,JSON.stringify([...done]))}
+function saveFav(){localStorage.setItem(SKF,JSON.stringify([...favs]))}
+function slug(t){return t.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
+
+/* ─── AURORA ─── */
+(()=>{
+  const wrap=document.getElementById('aurora');
+  const cfg=[
+    {w:700,h:500,x:'15%',y:'5%',c:'120,40,255',op:.2,dur:18,tx:60,ty:-80},
+    {w:600,h:400,x:'75%',y:'0%', c:'0,200,255',op:.16,dur:22,tx:-40,ty:60},
+    {w:800,h:500,x:'45%',y:'85%',c:'255,70,120',op:.13,dur:20,tx:30,ty:-70},
+    {w:500,h:400,x:'0%', y:'55%',c:'0,255,150', op:.1, dur:25,tx:80,ty:-40},
+    {w:400,h:400,x:'88%',y:'55%',c:'255,200,0', op:.09,dur:16,tx:-50,ty:-60},
+  ];
+  cfg.forEach(b=>{
+    const el=document.createElement('div');
+    el.className='aurora-blob';
+    el.style.cssText=`width:${b.w}px;height:${b.h}px;left:${b.x};top:${b.y};background:rgb(${b.c});--op:${b.op};--tx:${b.tx}px;--ty:${b.ty}px;animation-duration:${b.dur}s;animation-delay:${Math.random()*-20}s`;
+    wrap.appendChild(el);
+  });
+})();
+
+/* ─── FLOATING ICONS ─── */
+(()=>{
+  const layer=document.getElementById('floatLayer');
+  const icons=['⚡','🎯','🌲','🔍','💎','🔮','🕸️','🔗','📚','🔢','💡','🛰️','🔄','⛏️','📅','🔡','📐','✏️','↕️','🪟','🔥','⭐','🚀','💻','🧩','🎲','🏆','💫','🌟','⚙️','🚌','🤝','🗂️','🧭','🗺️','🔑'];
+  const cols=['#7c3aed','#06b6d4','#10b981','#f59e0b','#ef4444','#ec4899','#a855f7','#3b82f6','#00ffa3','#ffc94d','#ff5577','#ffd700','#06d6a0','#e879f9'];
+  for(let i=0;i<45;i++){
+    const el=document.createElement('div');
+    el.className='fi';
+    const clr=cols[i%cols.length], sz=14+Math.random()*24;
+    el.textContent=icons[i%icons.length];
+    el.style.cssText=`--dur:${11+Math.random()*18}s;--del:${Math.random()*16}s;--rot:${(Math.random()>.5?1:-1)*(180+Math.random()*300)}deg;--op:${0.4+Math.random()*0.5};left:${Math.random()*98}%;font-size:${sz}px;filter:drop-shadow(0 0 ${Math.round(sz/3)}px ${clr})`;
+    layer.appendChild(el);
+  }
+})();
+
+/* ─── CURSOR TRAIL ─── */
+const trailCols=['#9d4edd','#00d4ff','#00ffa3','#ffd700','#ff4466','#ff2d78'];
+let trailIdx=0;
+document.addEventListener('mousemove',e=>{
+  if(Math.random()>.55)return;
+  const d=document.createElement('div');
+  d.className='cursor-dot';
+  d.style.cssText=`left:${e.clientX-3}px;top:${e.clientY-3}px;background:${trailCols[trailIdx++%trailCols.length]}`;
+  document.body.appendChild(d);
+  setTimeout(()=>d.remove(),620);
+});
+
+/* ─── GLOBAL UPDATE ─── */
+function updateGlobal(){
+  const s=done.size, pct=Math.round(s/TOTAL*100);
+  document.getElementById('megaFill').style.width=pct+'%';
+  document.getElementById('ringPct').textContent=pct+'%';
+  document.getElementById('ringFill').style.strokeDashoffset=245-(245*s/TOTAL);
+  document.getElementById('scoreSub').textContent=s+' / '+TOTAL+' solved';
+  const t=['LET\'S BEGIN 🚀','WARMING UP 🔥','ON A ROLL! 💪','HALFWAY HERO 🎯','SO CLOSE! 🏆','LEGEND: 500/500 🌟'];
+  document.getElementById('scoreTitle').textContent=t[Math.min(5,Math.floor(pct/20))];
+  let e=0,m=0,h=0;
+  TOPICS.forEach(t=>t.qs.forEach(q=>{if(done.has(q.n)){if(q.d==='easy')e++;else if(q.d==='medium')m++;else h++;}}));
+  document.getElementById('sE').textContent=e;
+  document.getElementById('sM').textContent=m;
+  document.getElementById('sH').textContent=h;
+}
+function updateBar(ti){
+  const t=TOPICS[ti], s=t.qs.filter(q=>done.has(q.n)).length;
+  const f=document.getElementById('pf-'+ti);if(f)f.style.width=Math.round(s/t.qs.length*100)+'%';
+  const c=document.getElementById('pc-'+ti);if(c)c.textContent=s+'/'+t.qs.length;
+}
+
+/* ─── TOGGLE DONE ─── */
+const bStyle=document.createElement('style');
+bStyle.textContent='@keyframes bp{0%{transform:translate(0,0) scale(1.4);opacity:1}100%{transform:translate(var(--bx),var(--by)) scale(0);opacity:0}}';
+document.head.appendChild(bStyle);
+function burst(el){
+  const r=el.getBoundingClientRect();
+  const cols2=['#00ffa3','#ffc94d','#9d4edd','#00d4ff','#ff5577','#ffd700'];
+  const syms=['✦','★','◆','▲','●'];
+  for(let i=0;i<10;i++){
+    const d=document.createElement('div'), a=(i/10)*Math.PI*2, dist=40+Math.random()*30;
+    d.style.cssText=`position:fixed;left:${r.left+r.width/2}px;top:${r.top}px;pointer-events:none;z-index:9999;font-size:${9+Math.random()*7}px;color:${cols2[i%cols2.length]};animation:bp .7s ease-out forwards;--bx:${Math.cos(a)*dist}px;--by:${Math.sin(a)*dist-18}px`;
+    d.textContent=syms[i%syms.length];document.body.appendChild(d);
+    setTimeout(()=>d.remove(),750);
+  }
+}
+function toggleDone(qn,ti,btn){
+  const row=btn.closest('tr');
+  if(done.has(qn)){done.delete(qn);btn.textContent='Mark done';btn.classList.remove('on');row.classList.remove('done-r');}
+  else{done.add(qn);btn.textContent='✓ Done';btn.classList.add('on');row.classList.add('done-r');burst(btn);}
+  save();updateGlobal();updateBar(ti);
+}
+
+/* ─── FAVOURITES ─── */
+function togFavPanel(){
+  const panel=document.getElementById('favPanel');
+  const body=document.getElementById('favBody');
+  const open=body.classList.contains('open');
+  body.classList.toggle('open',!open);
+  panel.classList.toggle('open',!open);
+}
+function toggleFav(qn,ti,btn){
+  if(favs.has(qn)){favs.delete(qn);btn.classList.remove('on');btn.title='Save to favourites';}
+  else{favs.add(qn);btn.classList.add('on');btn.title='Remove from favourites';favBurst(btn);}
+  saveFav();renderFavPanel();
+}
+function favBurst(el){
+  const r=el.getBoundingClientRect();
+  for(let i=0;i<7;i++){
+    const d=document.createElement('div'), a=(i/7)*Math.PI*2, dist=28+Math.random()*18;
+    d.style.cssText=`position:fixed;left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;pointer-events:none;z-index:9999;font-size:11px;animation:bp .6s ease-out forwards;--bx:${Math.cos(a)*dist}px;--by:${Math.sin(a)*dist-8}px`;
+    d.textContent='⭐';document.body.appendChild(d);setTimeout(()=>d.remove(),700);
+  }
+}
+function removeFav(qn){
+  favs.delete(qn);saveFav();
+  const btn=document.getElementById('star-'+qn);
+  if(btn){btn.classList.remove('on');btn.title='Save to favourites';}
+  renderFavPanel();
+}
+function clearFavs(){
+  if(!confirm('Clear all favourites?'))return;
+  favs.clear();saveFav();
+  document.querySelectorAll('.star-btn').forEach(b=>{b.classList.remove('on');b.title='Save to favourites';});
+  renderFavPanel();
+}
+function renderFavPanel(){
+  document.getElementById('favPill').textContent=favs.size+' saved';
+  const panel=document.getElementById('favPanel');
+  panel.classList.toggle('has-items',favs.size>0);
+  const cont=document.getElementById('favContent');
+  if(favs.size===0){
+    cont.innerHTML=`<div class="fav-empty"><span class="fav-empty-icon">⭐</span>No favourites yet!<br>Click the ⭐ star on any tough question to save it here.<br>Build your personal retry list.</div>`;
+    return;
+  }
+  const rows=[];
+  TOPICS.forEach((t,ti)=>{
+    const cfg=TC[t.ti];
+    t.qs.forEach(q=>{if(favs.has(q.n))rows.push({...q,topicName:cfg.name,ti});});
+  });
+  cont.innerHTML=`<div class="fav-list">${rows.map(q=>`
+    <div class="fav-item">
+      <span class="fav-item-num">${q.n}</span>
+      <span class="fav-item-name"><a href="https://leetcode.com/problems/${slug(q.t)}/" target="_blank">${q.t}</a></span>
+      <span class="fav-item-topic">${q.topicName}</span>
+      <span class="badge b${q.d[0]}">${q.d}</span>
+      <button class="fav-rm" onclick="removeFav(${q.n})" title="Remove">✕</button>
+    </div>`).join('')}
+  </div>
+  <div class="fav-footer"><button class="fav-clear" onclick="clearFavs()">✕ Clear all favourites</button></div>`;
+}
+
+/* ─── FILTER ─── */
+function filt(type,btn){
+  document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.qrow').forEach(row=>{
+    const d=row.dataset.diff, n=parseInt(row.dataset.qn);
+    let show=true;
+    if(type==='easy'&&d!=='easy')show=false;
+    if(type==='medium'&&d!=='medium')show=false;
+    if(type==='hard'&&d!=='hard')show=false;
+    if(type==='done'&&!done.has(n))show=false;
+    if(type==='todo'&&done.has(n))show=false;
+    if(type==='fav'&&!favs.has(n))show=false;
+    row.style.display=show?'':'none';
+  });
+}
+
+/* ─── TOPIC TOGGLE ─── */
+function togTopic(i){
+  const b=document.getElementById('tbl-'+i);
+  const body=document.getElementById('tbd-'+i);
+  const open=body.classList.contains('topen');
+  body.classList.toggle('topen',!open);
+  b.classList.toggle('topen',!open);
+}
+
+/* ─── RESET ─── */
+function resetAll(){
+  if(!confirm('Reset ALL progress? Cannot be undone.'))return;
+  done.clear();save();
+  document.querySelectorAll('.dbtn').forEach(b=>{b.textContent='Mark done';b.classList.remove('on');});
+  document.querySelectorAll('.qrow').forEach(r=>r.classList.remove('done-r'));
+  TOPICS.forEach((_,i)=>updateBar(i));updateGlobal();
+}
+
+/* ─── RENDER ─── */
+function render(){
+  // count easy/med/hard per topic
+  const eCounts=TOPICS.map(t=>t.qs.filter(q=>q.d==='easy').length);
+  const mCounts=TOPICS.map(t=>t.qs.filter(q=>q.d==='medium').length);
+  const hCounts=TOPICS.map(t=>t.qs.filter(q=>q.d==='hard').length);
+
+  document.getElementById('topicRoot').innerHTML=TOPICS.map((t,i)=>{
+    const cfg=TC[t.ti];
+    return`<div class="tblock" id="tbl-${i}">
+      <div class="t-hdr" onclick="togTopic(${i})" style="--tc:${cfg.hex};--trgb:${cfg.rgb}">
+        <div class="t-icon-wrap">${cfg.icon}</div>
+        <div class="t-info">
+          <div class="t-name">${i+1}. ${cfg.name}</div>
+          <div class="t-meta">
+            <span class="t-tip">${cfg.tip}</span>
+            ${eCounts[i]?`<span class="t-mini-e">${eCounts[i]}E</span>`:''}
+            ${mCounts[i]?`<span class="t-mini-m">${mCounts[i]}M</span>`:''}
+            ${hCounts[i]?`<span class="t-mini-h">${hCounts[i]}H</span>`:''}
+          </div>
+        </div>
+        <div class="t-progress">
+          <div class="t-pbar"><div class="t-pfill" id="pf-${i}" style="background:${cfg.hex};box-shadow:0 0 8px ${cfg.hex}"></div></div>
+          <span class="t-cnt" id="pc-${i}">0/${t.qs.length}</span>
+        </div>
+        <span class="t-chevron">▶</span>
+      </div>
+      <div class="t-body" id="tbd-${i}">
+        <table class="q-table">
+          <thead><tr><th width="42">#</th><th>Question</th><th width="70">Diff</th><th width="130" style="text-align:right">Actions</th></tr></thead>
+          <tbody>${t.qs.map(q=>`
+            <tr class="qrow${done.has(q.n)?' done-r':''}${favs.has(q.n)?' fav-r':''}" data-diff="${q.d}" data-qn="${q.n}">
+              <td class="q-num">${q.n}</td>
+              <td class="q-name"><a href="https://leetcode.com/problems/${slug(q.t)}/" target="_blank">${q.t}</a></td>
+              <td><span class="badge b${q.d[0]}">${q.d}</span></td>
+              <td class="q-actions">
+                <button class="star-btn${favs.has(q.n)?' on':''}" id="star-${q.n}" onclick="toggleFav(${q.n},${i},this)" title="${favs.has(q.n)?'Remove from favourites':'Save to favourites'}">⭐</button>
+                <button class="dbtn${done.has(q.n)?' on':''}" onclick="toggleDone(${q.n},${i},this)">${done.has(q.n)?'✓ Done':'Mark done'}</button>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+  TOPICS.forEach((_,i)=>updateBar(i));
+}
+
+render();
+updateGlobal();
+renderFavPanel();
+</script>
+</body>
+</html>
