@@ -4,6 +4,6 @@ output "s3_url" {
 }
 
 output "bucket_name" {
-    value = random_id.rand-id.hex
+    value = aws_s3_bucket.demo-bucket.id
       
 }
