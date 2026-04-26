@@ -46,6 +46,9 @@
 
   resource "aws_s3_bucket_policy" "public_read" {
     bucket = aws_s3_bucket.demo-bucket.id
+    depends_on = [
+      aws_s3_bucket_public_access_block.demo-bucket
+    ]
 
     policy = jsonencode({
       Version = "2012-10-17",
