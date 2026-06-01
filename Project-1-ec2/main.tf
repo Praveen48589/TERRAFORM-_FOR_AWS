@@ -20,6 +20,11 @@ resource "aws_instance" "my-server" {
         aws_security_group.sg-group.id
     ]
 
+    root_block_device{
+        volume_size = 10
+        volume_type = "gp3"
+    }
+
     tags = {
         Name = "Sample-server"
     }
